@@ -1199,21 +1199,21 @@ const PreReqChart = () => {
       </div>
 
       {/* Refresh Button */}
-      <div className="fixed right-4 z-50" style={{ top: 'calc(5rem + 320px)' }}>
-        <button
-          onClick={handleRefreshData}
-          disabled={isPrefetching}
-          className="p-2 shadow rounded-lg bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700
-         text-gray-700 dark:text-gray-200 transition-colors mobile-nav-button touch-target disabled:opacity-50 disabled:cursor-not-allowed"
-          title="Refresh enrollment data"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`w-5 h-5 ${isPrefetching ? 'animate-spin' : ''}`}>
-            <polyline points="23 4 23 10 17 10"></polyline>
-            <polyline points="1 20 1 14 7 14"></polyline>
-            <path d="M3.51 9a9 9 0 0114.85-3.36M20.49 15a9 9 0 01-14.85 3.36"></path>
-          </svg>
-        </button>
-      </div>
+      <button
+        onClick={handleRefreshData}
+        disabled={isPrefetching}
+        className={`fixed right-4 z-40 p-3 rounded-full shadow-lg touch-target transition-all duration-300
+          ${darkMode ? 'bg-gray-800 text-gray-100 hover:bg-gray-700' : 'bg-white text-gray-800 hover:bg-gray-50'}
+          disabled:opacity-50 disabled:cursor-not-allowed`}
+        style={{ top: '5.5rem' }}
+        title="Refresh enrollment data"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`w-5 h-5 ${isPrefetching ? 'animate-spin' : ''}`}>
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <polyline points="1 20 1 14 7 14"></polyline>
+          <path d="M3.51 9a9 9 0 0114.85-3.36M20.49 15a9 9 0 01-14.85 3.36"></path>
+        </svg>
+      </button>
 
       {/* Onboarding Modal */}
       {showOnboarding && (
