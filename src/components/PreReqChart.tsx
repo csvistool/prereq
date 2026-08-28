@@ -3,8 +3,25 @@
 import React, {useEffect, useRef, useState, useCallback} from 'react';
 import data from "../../data/course.json";
 import type {CourseEnrollmentData} from '@/lib/api';
-import {fetchCourseData} from '@/lib/api';
 import {prefetchAllCourseData, type PrefetchedData} from '@/lib/prefetch';
+
+async function fetchCourseDataFromApi(courseName: string): Promise<CourseEnrollmentData> {
+  console.log(`[Client] Fetching course data for: ${courseName}`);
+  try {
+    const response = await fetch(`/api/course-data?course=${encodeURIComponent(courseName)}`);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error(`[Client] API error: ${response.status}`, errorData);
+      throw new Error(`Failed to fetch course data: ${response.statusText}`);
+    }
+    const data = await response.json();
+    console.log(`[Client] Successfully fetched data for ${courseName}:`, data);
+    return data;
+  } catch (error) {
+    console.error(`[Client] Error fetching ${courseName}:`, error);
+    throw error;
+  }
+}
 import OnboardingModal from './OnboardingModal';
 import GuidedTour from './GuidedTour';
 import ThreadBubbles from './ThreadBubbles';
@@ -572,7 +589,7 @@ const PreReqChart = () => {
           if (prefetchedData?.courses[course.id]) {
             data = prefetchedData.courses[course.id];
           } else {
-            data = await fetchCourseData(course.id);
+            data = await fetchCourseDataFromApi(course.id);
           }
           setEnrollmentData(data);
         } catch (error) {
