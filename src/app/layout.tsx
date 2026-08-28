@@ -53,10 +53,6 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true
-  },
-  icons: {
-    icon: '/favicon.ico',
-    apple: '/Georgia Tech Yellow Jackets Logo.png',
   }
 };
 

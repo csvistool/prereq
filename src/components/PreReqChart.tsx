@@ -377,16 +377,40 @@ const PreReqChart = () => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+
     // Check on initial load
     checkMobile();
-    
+
     // Add event listener for window resize
     window.addEventListener('resize', checkMobile);
-    
+
     // Cleanup
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+
+    const wheelHandler = (e: WheelEvent) => {
+      e.preventDefault();
+      const delta = -Math.sign(e.deltaY) * ZOOM_STEP;
+      const newScale = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, transform.scale + delta));
+
+      const rect = svg.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      setTransform((prev) => ({
+        scale: newScale,
+        x: x - (x - prev.x) * (newScale / prev.scale),
+        y: y - (y - prev.y) * (newScale / prev.scale)
+      }));
+    };
+
+    svg.addEventListener('wheel', wheelHandler, { passive: false });
+    return () => svg.removeEventListener('wheel', wheelHandler);
+  }, [transform.scale, transform.x, transform.y]);
 
   const getConnectionPoint = (course: Course, side: 'left' | 'right' | 'top' | 'bottom' = 'right', isLogicGate: boolean = false) => {
     const x = course.x * HORIZONTAL_SPACING;
@@ -459,24 +483,6 @@ const PreReqChart = () => {
 
   const handleMouseUp = () => {
     setIsDragging(false);
-  };
-
-  const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
-    const delta = -Math.sign(e.deltaY) * ZOOM_STEP;
-    const newScale = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, transform.scale + delta));
-
-    if (svgRef.current) {
-      const rect = svgRef.current.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-
-      setTransform((prev) => ({
-        scale: newScale,
-        x: x - (x - prev.x) * (newScale / prev.scale),
-        y: y - (y - prev.y) * (newScale / prev.scale)
-      }));
-    }
   };
 
   // Improved touch event handlers
@@ -1258,7 +1264,6 @@ const PreReqChart = () => {
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
-          onWheel={handleWheel}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
