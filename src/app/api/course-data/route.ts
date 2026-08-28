@@ -184,7 +184,7 @@ async function fetchCourseData(courseName: string): Promise<CourseEnrollmentData
         });
 
         return data;
-    } catch (error) {
+    } catch {
         return {
             currentEnrollment: 0,
             pastEnrollment: 0,

@@ -32,7 +32,7 @@ export async function prefetchAllCourseData(
     try {
       const data = await fetchCourseDataFromApi(course.id);
       prefetchedData.courses[course.id] = data;
-    } catch (error) {
+    } catch {
       // Continue with next course even if this one failed
     }
     completed++;
