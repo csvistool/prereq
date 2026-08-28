@@ -16,7 +16,11 @@ async function fetchWithDedup(url: string, cacheKey: string) {
         return pendingRequests.get(cacheKey);
     }
 
-    const promise = fetch(url).then(async (response) => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+    const promise = fetch(url, { signal: controller.signal }).then(async (response) => {
+        clearTimeout(timeout);
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
@@ -24,7 +28,9 @@ async function fetchWithDedup(url: string, cacheKey: string) {
         pendingRequests.delete(cacheKey);
         return data;
     }).catch((error) => {
+        clearTimeout(timeout);
         pendingRequests.delete(cacheKey);
+        console.error(`[fetchWithDedup] Failed for ${url}:`, error);
         throw error;
     });
 
@@ -75,19 +81,27 @@ async function fetchSectionSeatingInfo(term: string, CRN: string) {
     const url = `https://gt-scheduler.azurewebsites.net/proxy/class_section?term=${term}&crn=${CRN}`;
 
     try {
-        const response = await fetch(url);
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+
+        const response = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeout);
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
 
         const html = await response.text();
+        console.log(`[fetchSectionSeatingInfo] HTML length for ${term}/${CRN}:`, html.length);
         const seatingInfo: Record<string, string> = {};
 
         // Parse HTML using regex to extract span contents
         const spanMatches = html.match(/<span[^>]*>([^<]*)<\/span>/g) || [];
+        console.log(`[fetchSectionSeatingInfo] Found ${spanMatches.length} span tags for ${term}/${CRN}`);
+
         const spanTexts = spanMatches.map(span =>
             span.replace(/<span[^>]*>|<\/span>/g, '').trim()
         );
+        console.log(`[fetchSectionSeatingInfo] Extracted span texts for ${term}/${CRN}:`, spanTexts);
 
         for (let i = 0; i < spanTexts.length; i += 2) {
             if (i + 1 < spanTexts.length) {
@@ -96,10 +110,11 @@ async function fetchSectionSeatingInfo(term: string, CRN: string) {
                 seatingInfo[key] = value;
             }
         }
+        console.log(`[fetchSectionSeatingInfo] Final seating info for ${term}/${CRN}:`, seatingInfo);
 
         return seatingInfo;
     } catch (error) {
-        console.error("Error fetching seating info:", error);
+        console.error("Error fetching seating info for term", term, "CRN", CRN, ":", error);
         throw error;
     }
 }
@@ -117,19 +132,26 @@ async function courseSectionSeatingInfoList(term: string, courseName: string) {
 
 async function termTotalEnrollment(term: string, courseName: string) {
     const data = await courseSectionSeatingInfoList(term, courseName);
+    console.log(`[termTotalEnrollment] Seating data for ${courseName} in ${term}:`, JSON.stringify(data, null, 2));
+
     const totals = {
         'Enrollment Actual': 0,
         'Enrollment Maximum': 0
     };
 
     for (const section in data) {
-        totals['Enrollment Actual'] += parseInt(data[section]['Enrollment Actual']);
-        if (parseInt(data[section]['Enrollment Maximum']) === 0) {
-            totals['Enrollment Maximum'] += parseInt(data[section]['Enrollment Actual']);
+        const enrollmentActual = data[section]['Enrollment Actual'];
+        const enrollmentMaximum = data[section]['Enrollment Maximum'];
+        console.log(`[termTotalEnrollment] Section ${section}: Actual=${enrollmentActual}, Maximum=${enrollmentMaximum}`);
+
+        totals['Enrollment Actual'] += parseInt(enrollmentActual) || 0;
+        if (parseInt(enrollmentMaximum) === 0) {
+            totals['Enrollment Maximum'] += parseInt(enrollmentActual) || 0;
         } else {
-            totals['Enrollment Maximum'] += parseInt(data[section]['Enrollment Maximum']);
+            totals['Enrollment Maximum'] += parseInt(enrollmentMaximum) || 0;
         }
     }
+    console.log(`[termTotalEnrollment] Final totals for ${courseName} in ${term}:`, totals);
     return totals;
 }
 
@@ -211,11 +233,13 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(data, {
             headers: {
-                'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400'
+                'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+                'Access-Control-Allow-Origin': '*'
             }
         });
     } catch (error) {
         console.error(`[API] Error fetching data for ${courseName}:`, error);
+        console.error(`[API] Error stack:`, error instanceof Error ? error.stack : 'No stack trace');
         return NextResponse.json(
             {
                 error: 'Failed to fetch course data',
