@@ -6,19 +6,16 @@ import type {CourseEnrollmentData} from '@/lib/api';
 import {prefetchAllCourseData, type PrefetchedData} from '@/lib/prefetch';
 
 async function fetchCourseDataFromApi(courseName: string): Promise<CourseEnrollmentData> {
-  console.log(`[Client] Fetching course data for: ${courseName}`);
   try {
     const response = await fetch(`/api/course-data?course=${encodeURIComponent(courseName)}`);
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error(`[Client] API error: ${response.status}`, errorData);
+      console.error(`API error: ${response.status}`, errorData);
       throw new Error(`Failed to fetch course data: ${response.statusText}`);
     }
     const data = await response.json();
-    console.log(`[Client] Successfully fetched data for ${courseName}:`, data);
     return data;
   } catch (error) {
-    console.error(`[Client] Error fetching ${courseName}:`, error);
     throw error;
   }
 }
@@ -283,10 +280,8 @@ const PreReqChart = () => {
   }, [selectedCourse, showGuidedTour, handleClosePopup]);
 
   useEffect(() => {
-    console.log('[PreReqChart] useEffect for prefetch running');
     async function loadData() {
       try {
-        console.log('[PreReqChart] loadData called');
         setIsPrefetching(true);
         setPrefetchProgress(0);
 
@@ -297,13 +292,10 @@ const PreReqChart = () => {
           const parsed = JSON.parse(cached);
           const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
           const cacheAge = Date.now() - parsed.timestamp;
-          console.log(`[PreReqChart] Cache age: ${Math.round(cacheAge / 1000 / 60)} minutes`);
 
           if (cacheAge < CACHE_DURATION) {
             existingData = parsed;
-            console.log('[PreReqChart] Using cached data (still valid)');
           } else {
-            console.log('[PreReqChart] Cache expired, will re-fetch');
             localStorage.removeItem('prefetchedData');
           }
         }
@@ -312,11 +304,7 @@ const PreReqChart = () => {
           !existingData?.courses[course.id]
         );
 
-        console.log(`[PreReqChart] Courses to fetch: ${coursesToFetch.length}/${courses.length}`);
-        console.log(`[PreReqChart] Course IDs to fetch:`, coursesToFetch.map(c => c.id));
-
         if (coursesToFetch.length === 0 && existingData) {
-          console.log('[PreReqChart] All courses cached, using existing data');
           setPrefetchedData(existingData);
           setPrefetchProgress(100);
           return;
@@ -330,19 +318,16 @@ const PreReqChart = () => {
         const totalToFetch = coursesToFetch.length;
         let completedCourses = 0;
 
-        console.log('[PreReqChart] Starting prefetchAllCourseData');
         const fetchedData = await prefetchAllCourseData(coursesToFetch, (progress) => {
           completedCourses = progress;
           const existingCount = courses.length - totalToFetch;
           const totalProgress = Math.round(((completedCourses + existingCount) / courses.length) * 100);
           setPrefetchProgress(totalProgress);
-          console.log(`[PreReqChart] Prefetch progress: ${totalProgress}%`);
         }).catch(error => {
           console.error('Error during prefetch:', error);
           console.error('Error stack:', error instanceof Error ? error.stack : 'No stack');
           return { courses: {} };
         });
-        console.log('[PreReqChart] Prefetch completed. Fetched data:', Object.keys(fetchedData.courses).length, 'courses');
 
         const mergedData: PrefetchedData = {
           timestamp: Date.now(),
@@ -1090,7 +1075,6 @@ const PreReqChart = () => {
   };
 
   const handleRefreshData = async () => {
-    console.log('[PreReqChart] Manual refresh triggered');
     // Clear cached data
     localStorage.removeItem('prefetchedData');
     setPrefetchedData(null);
@@ -1121,9 +1105,8 @@ const PreReqChart = () => {
         }
       });
       setPrefetchErrors(errors);
-      console.log('[PreReqChart] Manual refresh completed');
     } catch (error) {
-      console.error('[PreReqChart] Error during manual refresh:', error);
+      console.error('Error during refresh:', error);
     } finally {
       setIsPrefetching(false);
     }
