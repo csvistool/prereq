@@ -609,7 +609,7 @@ const PreReqChart = () => {
       if (prefetchedData?.courses[course.id]) {
         data = prefetchedData.courses[course.id];
       } else {
-        data = await fetchCourseData(course.id);
+        data = await fetchCourseDataFromApi(course.id);
         setPrefetchedData(prev => {
           const newData = {
             timestamp: Date.now(),
