@@ -146,22 +146,22 @@ export async function fetchCourseData(courseName: string): Promise<CourseEnrollm
 
     try {
         const [currentTermData, pastTermData, oneYearBackTermData, threeTermBackData] = await Promise.all([
-            termTotalEnrollment(currentTerm, courseName).catch(() => ({
-                'Enrollment Actual': 0,
-                'Enrollment Maximum': 0
-            })),
-            termTotalEnrollment(pastTerm, courseName).catch(() => ({
-                'Enrollment Actual': 0,
-                'Enrollment Maximum': 0
-            })),
-            termTotalEnrollment(oneYearBack, courseName).catch(() => ({
-                'Enrollment Actual': 0,
-                'Enrollment Maximum': 0
-            })),
-            termTotalEnrollment(threeTermsBack, courseName).catch(() => ({
-                'Enrollment Actual': 0,
-                'Enrollment Maximum': 0
-            }))
+            termTotalEnrollment(currentTerm, courseName).catch((err) => {
+                console.error(`Error fetching ${currentTerm} data for ${courseName}:`, err);
+                return {'Enrollment Actual': 0, 'Enrollment Maximum': 0};
+            }),
+            termTotalEnrollment(pastTerm, courseName).catch((err) => {
+                console.error(`Error fetching ${pastTerm} data for ${courseName}:`, err);
+                return {'Enrollment Actual': 0, 'Enrollment Maximum': 0};
+            }),
+            termTotalEnrollment(oneYearBack, courseName).catch((err) => {
+                console.error(`Error fetching ${oneYearBack} data for ${courseName}:`, err);
+                return {'Enrollment Actual': 0, 'Enrollment Maximum': 0};
+            }),
+            termTotalEnrollment(threeTermsBack, courseName).catch((err) => {
+                console.error(`Error fetching ${threeTermsBack} data for ${courseName}:`, err);
+                return {'Enrollment Actual': 0, 'Enrollment Maximum': 0};
+            })
         ]);
 
         const data = {
