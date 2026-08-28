@@ -305,7 +305,11 @@ const PreReqChart = () => {
           !existingData?.courses[course.id]
         );
 
+        console.log(`[PreReqChart] Courses to fetch: ${coursesToFetch.length}/${courses.length}`);
+        console.log(`[PreReqChart] Course IDs to fetch:`, coursesToFetch.map(c => c.id));
+
         if (coursesToFetch.length === 0 && existingData) {
+          console.log('[PreReqChart] All courses cached, using existing data');
           setPrefetchedData(existingData);
           setPrefetchProgress(100);
           return;
@@ -319,15 +323,19 @@ const PreReqChart = () => {
         const totalToFetch = coursesToFetch.length;
         let completedCourses = 0;
 
+        console.log('[PreReqChart] Starting prefetchAllCourseData');
         const fetchedData = await prefetchAllCourseData(coursesToFetch, (progress) => {
           completedCourses = progress;
           const existingCount = courses.length - totalToFetch;
           const totalProgress = Math.round(((completedCourses + existingCount) / courses.length) * 100);
           setPrefetchProgress(totalProgress);
+          console.log(`[PreReqChart] Prefetch progress: ${totalProgress}%`);
         }).catch(error => {
           console.error('Error during prefetch:', error);
+          console.error('Error stack:', error instanceof Error ? error.stack : 'No stack');
           return { courses: {} };
         });
+        console.log('[PreReqChart] Prefetch completed. Fetched data:', Object.keys(fetchedData.courses).length, 'courses');
 
         const mergedData: PrefetchedData = {
           timestamp: Date.now(),
