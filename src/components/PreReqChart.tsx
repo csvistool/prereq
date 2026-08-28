@@ -296,8 +296,16 @@ const PreReqChart = () => {
 
         if (cached) {
           const parsed = JSON.parse(cached);
-          if (Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000) {
+          const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+          const cacheAge = Date.now() - parsed.timestamp;
+          console.log(`[PreReqChart] Cache age: ${Math.round(cacheAge / 1000 / 60)} minutes`);
+
+          if (cacheAge < CACHE_DURATION) {
             existingData = parsed;
+            console.log('[PreReqChart] Using cached data (still valid)');
+          } else {
+            console.log('[PreReqChart] Cache expired, will re-fetch');
+            localStorage.removeItem('prefetchedData');
           }
         }
 
@@ -1044,7 +1052,7 @@ const PreReqChart = () => {
   const handleReset = () => {
     const centerX = window.innerWidth / 2;
     const centerY = window.innerHeight / 2;
-    
+
     // Add smooth animation to reset
     const startX = transform.x;
     const startY = transform.y;
@@ -1052,34 +1060,74 @@ const PreReqChart = () => {
     const endX = centerX - (HORIZONTAL_SPACING * 2);
     const endY = centerY - (VERTICAL_SPACING * 2);
     const endScale = INITIAL_ZOOM;
-    
+
     const duration = 500; // ms
     const startTime = Date.now();
-    
+
     const animateReset = () => {
       const elapsed = Date.now() - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      
+
       // Easing function for smoother animation
       const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
       const easedProgress = easeOutCubic(progress);
-      
+
       const newX = startX + (endX - startX) * easedProgress;
       const newY = startY + (endY - startY) * easedProgress;
       const newScale = startScale + (endScale - startScale) * easedProgress;
-      
+
       setTransform({
         x: newX,
         y: newY,
         scale: newScale
       });
-      
+
       if (progress < 1) {
         requestAnimationFrame(animateReset);
       }
     };
-    
+
     requestAnimationFrame(animateReset);
+  };
+
+  const handleRefreshData = async () => {
+    console.log('[PreReqChart] Manual refresh triggered');
+    // Clear cached data
+    localStorage.removeItem('prefetchedData');
+    setPrefetchedData(null);
+    setPrefetchErrors({});
+
+    // Start fresh prefetch
+    setIsPrefetching(true);
+    setPrefetchProgress(0);
+
+    try {
+      const fetchedData = await prefetchAllCourseData(courses, (progress) => {
+        const totalProgress = Math.round((progress / courses.length) * 100);
+        setPrefetchProgress(totalProgress);
+      });
+
+      const mergedData: PrefetchedData = {
+        timestamp: Date.now(),
+        courses: fetchedData.courses
+      };
+
+      setPrefetchedData(mergedData);
+      localStorage.setItem('prefetchedData', JSON.stringify(mergedData));
+
+      const errors: Record<string, boolean> = {};
+      courses.forEach(course => {
+        if (!mergedData.courses[course.id]) {
+          errors[course.id] = true;
+        }
+      });
+      setPrefetchErrors(errors);
+      console.log('[PreReqChart] Manual refresh completed');
+    } catch (error) {
+      console.error('[PreReqChart] Error during manual refresh:', error);
+    } finally {
+      setIsPrefetching(false);
+    }
   };
 
   // Add click handler to clear selection when clicking the background
@@ -1263,6 +1311,19 @@ const PreReqChart = () => {
             title="Reset View"
           >
             <House className="w-5 h-5" />
+          </button>
+          <button
+            onClick={handleRefreshData}
+            disabled={isPrefetching}
+            className="p-2.5 shadow rounded-lg bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700
+           text-gray-700 dark:text-gray-200 transition-colors mobile-nav-button touch-target disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Refresh enrollment data"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`w-5 h-5 ${isPrefetching ? 'animate-spin' : ''}`}>
+              <polyline points="23 4 23 10 17 10"></polyline>
+              <polyline points="1 20 1 14 7 14"></polyline>
+              <path d="M3.51 9a9 9 0 0114.85-3.36M20.49 15a9 9 0 01-14.85 3.36"></path>
+            </svg>
           </button>
         </div>
 
