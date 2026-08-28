@@ -220,6 +220,7 @@ type ThreadMap = {
 };
 
 const PreReqChart = () => {
+  console.log('[PreReqChart] Component mounted');
   const BOX_WIDTH = 160;
   const BOX_HEIGHT = 80;
   const ID_SECTION_HEIGHT = 30;
@@ -283,8 +284,10 @@ const PreReqChart = () => {
   }, [selectedCourse, showGuidedTour, handleClosePopup]);
 
   useEffect(() => {
+    console.log('[PreReqChart] useEffect for prefetch running');
     async function loadData() {
       try {
+        console.log('[PreReqChart] loadData called');
         setIsPrefetching(true);
         setPrefetchProgress(0);
 
