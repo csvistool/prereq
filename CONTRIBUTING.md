@@ -13,7 +13,7 @@ There are many ways to contribute to GradGT, including:
 - Improving documentation
 - Optimizing performance
 
-Check out our [Issues tab](https://github.com/VineethSendilraj/GradGT/issues) for specific tasks that need attention.
+Check out our [Issues tab](https://github.com/csvistool/Prereq/issues) for specific tasks that need attention.
 
 ## Project Structure
 
@@ -43,8 +43,8 @@ We recommend using [Visual Studio Code](https://code.visualstudio.com/) with the
 1. Fork the repository
 2. Clone your fork:
 ```bash
-git clone https://github.com/YourUsername/GradGT.git
-cd GradGT
+git clone https://github.com/csvistool/Prereq.git
+cd Prereq
 ```
 
 3. Install dependencies:
@@ -107,7 +107,7 @@ npm run format
 
 ## Creating a Pull Request
 
-1. Go to the [GradGT repository](https://github.com/VineethSendilraj/GradGT)
+1. Go to the [Prereq repository](https://github.com/csvistool/Prereq)
 2. Click "New Pull Request"
 3. Select your fork and branch
 4. Fill in the PR template:
