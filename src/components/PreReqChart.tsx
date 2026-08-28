@@ -1205,7 +1205,7 @@ const PreReqChart = () => {
         className={`fixed right-4 z-40 p-3 rounded-full shadow-lg touch-target transition-all duration-300
           ${darkMode ? 'bg-gray-800 text-gray-100 hover:bg-gray-700' : 'bg-white text-gray-800 hover:bg-gray-50'}
           disabled:opacity-50 disabled:cursor-not-allowed`}
-        style={{ top: '5.5rem' }}
+        style={{ top: 'calc(5.5rem + 50px)' }}
         title="Refresh enrollment data"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`w-5 h-5 ${isPrefetching ? 'animate-spin' : ''}`}>
