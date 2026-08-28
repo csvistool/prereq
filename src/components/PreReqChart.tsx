@@ -1292,12 +1292,12 @@ const PreReqChart = () => {
                   className={`underline ${darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600 hover:text-gray-800'}`}>
                   Daveh Day
                 </a>
-                , under the direction of Dr. Mary Hudachek-Buswell
+                , under the direction of Dr. Mary Hudachek-Buswell. To make changes to this site, contact Lucian Tash or submit a pull request.
               </span>
             </span>
           </div>
           <a
-            href="https://github.com/VineethSendilraj/GradGT"
+            href="https://github.com/csvistool/Prereq"
             target="_blank"
             rel="noopener noreferrer"
             className={`flex items-center gap-2 ${darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600 hover:text-gray-800'}`}
